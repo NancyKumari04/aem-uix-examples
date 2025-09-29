@@ -12,6 +12,7 @@ import {
   Button,
   View,
   TextField,
+  TextArea,
   Heading,
   StatusLight
 } from '@adobe/react-spectrum';
@@ -30,6 +31,7 @@ export default function PanelAssetDetailsExtensionTab() {
   const [guestConnection, setGuestConnection] = useState();
   const [currentAsset, setCurrentAsset] = useState();
   const [taskName, setTaskName] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState({ type: 'info', message: '' });
 
@@ -68,7 +70,8 @@ export default function PanelAssetDetailsExtensionTab() {
         body: JSON.stringify({
           action: 'createTaskAndLinkAsset',
           assetId: currentAsset,
-          taskName: taskName
+          taskName: taskName,
+          taskDescription: taskDescription
         }),
         signal: AbortSignal.timeout(CONFIG.requestTimeout)
       });
@@ -131,6 +134,13 @@ export default function PanelAssetDetailsExtensionTab() {
               value={taskName}
               onChange={setTaskName}
               placeholder="Enter task name"
+            />
+            <TextArea
+              label="Task Description"
+              value={taskDescription}
+              onChange={setTaskDescription}
+              placeholder="Enter task description"
+              rows={4}
             />
           </Flex>
 
