@@ -23,7 +23,7 @@ import { extensionId } from './Constants';
  * Configuration constants
  */
 const CONFIG = {
-  backendUrl: 'https://274796-chextn-stage.adobeio-static.net/api/v1/web/aem-contenthub-assets-details-1/generic',
+  backendUrl: `https://${process.env.AIO_runtime_namespace}.adobeio-static.net/api/v1/web/aem-contenthub-assets-details-1/generic`,
   requestTimeout: 30000
 };
 

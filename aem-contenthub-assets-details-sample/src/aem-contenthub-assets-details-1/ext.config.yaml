@@ -17,6 +17,7 @@ runtimeManifest:
           runtime: nodejs:22
           inputs:
             LOG_LEVEL: debug
+            API_ENDPOINT: $API_ENDPOINT
             IMS_ENDPOINT: $IMS_ENDPOINT
             METASCOPES: $METASCOPES
             TECHNICAL_ACCOUNT_CLIENT_ID: $TECHNICAL_ACCOUNT_CLIENT_ID
@@ -31,6 +32,7 @@ runtimeManifest:
             AEM_AUTHOR: $AEM_AUTHOR
             DOCUMENT_PROVIDER_ID: $DOCUMENT_PROVIDER_ID
             DEFAULT_PROJECT_ID: $DEFAULT_PROJECT_ID
+            AIO_runtime_namespace: $AIO_runtime_namespace
           annotations:
             require-adobe-auth: false
             final: true
