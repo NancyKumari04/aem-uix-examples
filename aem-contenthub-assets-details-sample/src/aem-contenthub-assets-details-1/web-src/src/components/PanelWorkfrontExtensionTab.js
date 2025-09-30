@@ -34,10 +34,13 @@ export default function PanelWorkfrontExtensionTab() {
   const [taskDescription, setTaskDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState({ type: 'info', message: '' });
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    initializeExtension();
-  }, []);
+    if (!isInitialized) {
+      initializeExtension();
+    }
+  }, [isInitialized]);
 
   const initializeExtension = async () => {
     try {
@@ -46,9 +49,11 @@ export default function PanelWorkfrontExtensionTab() {
       
       const asset = await guestConnection.host.assetDetails.getCurrentAsset();
       setCurrentAsset(asset);
+      setIsInitialized(true);
     } catch (error) {
       console.error('Error initializing extension:', error);
       setStatus({ type: 'negative', message: 'Failed to initialize extension' });
+      setIsInitialized(true); // Set to true even on error to prevent retry loops
     }
   };
 
@@ -99,6 +104,9 @@ export default function PanelWorkfrontExtensionTab() {
     if (responseBody && responseBody.success) {
       // Clear any previous status messages
       setStatus({ type: 'info', message: '' });
+      // Clear the form fields
+      setTaskName('');
+      setTaskDescription('');
       displayToast('positive', 'Task created successfully!');
     } else if (responseBody && responseBody.error) {
       setStatus({ type: 'negative', message: `Error: ${responseBody.error}` });
@@ -106,6 +114,9 @@ export default function PanelWorkfrontExtensionTab() {
     } else {
       // Fallback for unexpected response structure
       setStatus({ type: 'info', message: '' });
+      // Clear the form fields
+      setTaskName('');
+      setTaskDescription('');
       displayToast('positive', 'Task creation completed');
     }
   };
