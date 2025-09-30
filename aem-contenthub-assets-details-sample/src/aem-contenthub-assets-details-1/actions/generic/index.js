@@ -172,17 +172,15 @@ async function main(params) {
             };
         }
 
-        // Route to appropriate handler
-        switch (params.action) {
-            case 'createTaskAndLinkAsset':
-                return await handleCreateTask(params, logger);
-                
-            default:
-                return {
-                    statusCode: 400,
-                    body: { error: `Unknown action: ${params.action}` }
-                };
+        // Handle the createTaskAndLinkAsset action
+        if (params.action === 'createTaskAndLinkAsset') {
+            return await handleCreateTask(params, logger);
         }
+        
+        return {
+            statusCode: 400,
+            body: { error: `Unknown action: ${params.action}` }
+        };
 
     } catch (error) {
         logger.error('Server error:', error);
