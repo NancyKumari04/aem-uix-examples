@@ -94,19 +94,72 @@ This sample adds a Content Hub side panel that can create a Workfront task and l
 - **Workfront API access** and base URL for your Workfront instance.
 - **AEM Content Hub repo host** you will allow this extension to run on.
 
+Step-by-step (what to gather and where):
+
+1. Go to Cloud Manager and note your program and environment details.
+   - Example URL pattern: `https://experience.adobe.com/#/@<org>/cloud-manager/home.html/program/<programId>`
+   - From your AEM environments, note:
+     - Delivery host (Content Hub repo), e.g., `delivery-<program>-<env>.adobeaemcloud.com`
+     - Author host, e.g., `author-<program>-<env>.adobeaemcloud.com`
+2. Update `allowedRepos` in `src/aem-contenthub-assets-details-1/web-src/src/components/ExtensionRegistration.js` with your Delivery host.
+3. Add Technical Account in Admin Console (so it has product access before creating credentials).
+   - Go to Admin Console.
+   - Navigate to Products → Workfront → Workfront link.
+   - Add the Technical Account as both User and Admin.
+   - Ensure your own user is also added as both User and Admin in Admin Console and in Workfront.
+4. In Adobe Developer Console, ensure you have a Server-to-Server (JWT) integration for Workfront.
+   - Collect: `IMS_ENDPOINT`, `METASCOPES`, `TECHNICAL_ACCOUNT_CLIENT_ID`, `TECHNICAL_ACCOUNT_CLIENT_SECRET`, `TECHNICAL_ACCOUNT_EMAIL`, `TECHNICAL_ACCOUNT_ID`, `ORGANIZATION_ID`.
+   - Generate/provide: `PRIVATE_KEY` (kept locally) and `PUBLIC_KEY` (uploaded/registered).
+5. In Workfront, confirm API access and required permissions.
+   - Note your tenant base URL for `WORKFRONT_BASE_URL` (e.g., `https://<company>.my.workfront.com/attask/api/v15.0`).
+   - Ensure a default project exists and note its `DEFAULT_PROJECT_ID`.
+   - If using AEM external documents, get the `DOCUMENT_PROVIDER_ID` from Setup → Documents → External Document Providers.
+   - Ensure permissions to create tasks in the default project and to link external documents.
+   - Get Workfront user ID (used by DOCUMENT_PROVIDER_ID API when needed):
+    
+     curl --location 'https://<your-tenant>.my.workfront.com/attask/api-internal/user/realUser' \
+       --header 'Authorization: Bearer <ACCESS_TOKEN>'
+     # Response → use ID field in USER_ID in DOCUMENT_PROVIDER_ID API
+     
+   - One-time creation of DOCUMENT_PROVIDER_ID via API (optional):
+   
+     curl --location --request PUT \
+       "https://<your-tenant>.my.workfront.com/attask/api/unsupported/user/<USER_ID>?action=initializeStatelessDocumentProviderForUser" \
+       --header 'user-agent: Workfront Fusion/production' \
+       --header 'content-type: application/json' \
+       --header 'authorization: Bearer <ACCESS_TOKEN>' \
+       --data '{
+         "providerType": "AEM",
+         "documentProviderConfigID": "<ACTIVE_AEM_INTEGRATION_CONFIG_ID>",
+         "documentProviderConfigName": "Content Hub"
+       }'
+    
+     - Replace `<USER_ID>` with the Workfront user ID.
+     - Replace `<ACTIVE_AEM_INTEGRATION_CONFIG_ID>` with the ID of the active AEM provider configuration in Workfront.
+     - The resulting configuration ID is what you set as `DOCUMENT_PROVIDER_ID` in your `.env`.
+6. Populate the `.env` with the variables listed below, including `AIO_runtime_namespace`.
+   - You can retrieve the namespace via CLI: `aio runtime namespace get`.
+7. Run locally with `aio app run` and verify the Workfront panel in Content Hub.
+
 ### Configure allowed Content Hub repo host
 
 Edit `src/aem-contenthub-assets-details-1/web-src/src/components/ExtensionRegistration.js` and update `allowedRepos` to include your Content Hub domain.
+
+Example:
+
+// src/aem-contenthub-assets-details-1/web-src/src/components/ExtensionRegistration.js
+const allowedRepos = [
+  'delivery-<program>-<env>.adobeaemcloud.com',
+];
 
 ### Required environment variables
 
 These are read by the action (see `ext.config.yaml -> runtimeManifest.packages.aem-contenthub-assets-details-1.actions.generic.inputs`). Provide them via `.env` so `aio` can inject them at build/deploy time.
 
-```bash
 # Logging
 LOG_LEVEL=info
 
-# IMS / JWT integration (used to obtain a Workfront access token via IMS)
+# Note: Values below come from Adobe Developer Console Service Credentials (technical account)
 IMS_ENDPOINT=ims-na1.adobelogin.com
 METASCOPES=<comma-separated Workfront metascopes>
 TECHNICAL_ACCOUNT_CLIENT_ID=<client_id>
@@ -121,12 +174,14 @@ CERTIFICATE_EXPIRATION_DATE=<optional>
 # Workfront configuration
 WORKFRONT_BASE_URL=https://<your-workfront-domain>.my.workfront.com/attask/api/v15.0
 AEM_AUTHOR=<your-aem-author-host>
+
 DOCUMENT_PROVIDER_ID=<provider_id_configured_in_workfront>
+# DEFAULT_PROJECT_ID can be picked from the url of project created in workfront
 DEFAULT_PROJECT_ID=<target_project_id_for_new_tasks>
 
 # Runtime namespace (used by UI to call your action endpoint)
 AIO_runtime_namespace=<your_runtime_namespace>
-```
+
 
 Notes:
 - The UI computes the action URL using `AIO_runtime_namespace` and the package/action path: `https://<AIO_runtime_namespace>.adobeio-static.net/api/v1/web/aem-contenthub-assets-details-1/generic`.
