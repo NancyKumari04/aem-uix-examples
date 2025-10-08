@@ -182,6 +182,19 @@ DEFAULT_PROJECT_ID=<target_project_id_for_new_tasks>
 # Runtime namespace (used by UI to call your action endpoint)
 AIO_runtime_namespace=<your_runtime_namespace>
 
+Note: When you initialize/select a workspace using the Adobe I/O CLI, the namespace is populated automatically in `.env`.
+Run:
+
+```
+aio runtime namespace get  # to verify
+```
+
+Why runtime namespace is required here
+
+- The UI constructs the backend URL using the namespace to reach your deployed web action, e.g. `https://<AIO_runtime_namespace>.adobeio-static.net/api/v1/web/aem-contenthub-assets-details-1/generic`.
+- This ensures requests route to the correct Adobe I/O Runtime workspace (dev/stage/prod). If the namespace is wrong or missing, calls 404 or hit the wrong environment.
+- You can see this used in `src/aem-contenthub-assets-details-1/web-src/src/components/PanelWorkfrontExtensionTab.js` where `backendUrl` is built from `process.env.AIO_runtime_namespace`.
+
 
 Notes:
 - The UI computes the action URL using `AIO_runtime_namespace` and the package/action path: `https://<AIO_runtime_namespace>.adobeio-static.net/api/v1/web/aem-contenthub-assets-details-1/generic`.
